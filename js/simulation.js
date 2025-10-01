@@ -212,10 +212,20 @@ export class Simulation {
 
   drawSubstrate(p){
     const ctx=this.ctx; ctx.save(); ctx.translate(p.x,p.y);
+    // Pie slice substrate: wedge matching typical native notch (~1.8 rad spread)
+    const angle = 1.8; // spread angle
+    const rot = p.shapeSeed + performance.now()/3000; // slow rotation for variety
+    ctx.rotate(rot);
     ctx.beginPath();
     ctx.fillStyle = '#fbbf24';
-    ctx.arc(0,0,p.radius,0,Math.PI*2);
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,p.radius,-angle/2,angle/2,false);
+    ctx.closePath();
     ctx.fill();
+    // Optional darker edge for contrast
+    ctx.strokeStyle='rgba(0,0,0,0.35)';
+    ctx.lineWidth=1;
+    ctx.stroke();
     ctx.restore();
   }
 

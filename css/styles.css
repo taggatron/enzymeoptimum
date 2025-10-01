@@ -12,6 +12,7 @@ header h1 { margin:0; font-size:1.4rem; }
 .legend-box.substrate { background:#fbbf24; }
 .legend-box.product { background:#4ade80; }
 .simulation-wrapper, .graph-wrapper { background:#1e293b; padding:0.5rem; border-radius:8px; display:flex; justify-content:center; align-items:center; }
+.graph-wrapper { justify-self: center; }
 canvas { background:#0f172a; border:1px solid #334155; border-radius:4px; image-rendering:pixelated; }
 .stats p { margin:0.25rem 0; }
 footer { font-size:0.8rem; }
