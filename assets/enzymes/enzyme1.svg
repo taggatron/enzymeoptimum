@@ -1,0 +1,9 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <clipPath id="activeSiteClip">
+    <path d="M40 10 C60 18 66 32 60 40 C66 48 60 62 40 70 C20 62 14 48 20 40 C14 32 20 18 40 10 Z"/>
+  </clipPath>
+ </defs>
+ <path fill="#38bdf8" d="M40 10 C60 18 66 32 60 40 C66 48 60 62 40 70 C20 62 14 48 20 40 C14 32 20 18 40 10 Z"/>
+ <path fill="#0f172a" d="M40 28 C46 30 48 36 46 40 C48 44 46 50 40 52 C34 50 32 44 34 40 C32 36 34 30 40 28 Z"/>
+</svg>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Enzyme Temperature Simulation</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Enzyme Activity vs Temperature</h1>
+  </header>
+  <main class="layout">
+    <section class="controls">
+      <label for="tempSlider">Temperature: <span id="tempValue">25</span> °C</label>
+      <input id="tempSlider" type="range" min="0" max="80" value="25" />
+      <div class="legend">
+        <h3>Legend</h3>
+        <ul>
+          <li><span class="legend-box enzyme"></span>Enzymes</li>
+          <li><span class="legend-box substrate"></span>Substrates</li>
+          <li><span class="legend-box product"></span>Products (counted)</li>
+        </ul>
+      </div>
+      <div class="stats">
+        <p>Reactions (last 10s): <span id="rateDisplay">0</span></p>
+        <p>Total Products: <span id="totalProducts">0</span></p>
+      </div>
+    </section>
+    <section class="simulation-wrapper">
+      <canvas id="simCanvas" width="640" height="480"></canvas>
+    </section>
+    <section class="graph-wrapper">
+      <canvas id="graphCanvas" width="640" height="240"></canvas>
+    </section>
+  </main>
+  <footer>
+    <p>Temperature above 37°C causes denaturation (active site distortion).</p>
+  </footer>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
