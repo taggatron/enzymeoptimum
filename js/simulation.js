@@ -132,11 +132,10 @@ export class Simulation {
   }
 
   computeSpeedFactor(){
-    // Basic Q10-like scaling: rate doubles each 10C up to 37 then declines with denaturation
+    // Maintain collision theory: kinetic energy (speed) keeps increasing with temperature (no post-37 penalty)
+    // Reference baseline 25C, approximate Q10=2 behavior across full range
     const t = this.temperature;
-    const base = Math.pow(2, (Math.min(t,37)-25)/10); // reference 25C baseline
-    const penalty = t>37 ? Math.exp(-(t-37)/15) : 1; // gradual decline
-    return base * penalty;
+    return Math.pow(2, (t-25)/10);
   }
 
   temperatureEfficiency(){
@@ -157,24 +156,56 @@ export class Simulation {
     const ctx=this.ctx;
     ctx.save();
     ctx.translate(p.x,p.y);
-    // Enzyme body
-    ctx.beginPath();
-    ctx.fillStyle = '#38bdf8';
-    const wobble = 1 + p.denatureFactor*0.4*Math.sin(p.shapeSeed + performance.now()/700);
-    ctx.ellipse(0,0,p.radius*wobble,p.radius*(1 - 0.1*p.denatureFactor),0,0,Math.PI*2);
-    ctx.fill();
-
-    // Active site (a cut-out or contrasting shape)
-    // We'll draw a contrasting arc notch; denaturation distorts angle and size
-    const notchAngle = 0.9 + p.denatureFactor*0.8;
-    const notchSize = 0.55 + p.denatureFactor*0.3*Math.sin(p.shapeSeed + performance.now()/500);
-    ctx.beginPath();
-    ctx.fillStyle = '#0f172a';
-    ctx.rotate(p.shapeSeed * 0.2 + performance.now()/5000);
-    ctx.moveTo(0,0);
-    ctx.arc(0,0,p.radius*0.85, -notchAngle*notchSize, notchAngle*notchSize, false);
-    ctx.closePath();
-    ctx.fill();
+    if(!p.denatured){
+      // Native shape: smooth ellipse + clean notch
+      ctx.beginPath();
+      ctx.fillStyle = '#38bdf8';
+      const wobble = 1 + 0.05*Math.sin(p.shapeSeed + performance.now()/900);
+      ctx.ellipse(0,0,p.radius*wobble,p.radius,0,0,Math.PI*2);
+      ctx.fill();
+      const notchAngle = 0.9;
+      const notchSize = 0.55;
+      ctx.beginPath();
+      ctx.fillStyle = '#0f172a';
+      ctx.rotate(p.shapeSeed * 0.2 + performance.now()/5000);
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,p.radius*0.85, -notchAngle*notchSize, notchAngle*notchSize, false);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      // Denatured: irregular spiky polygon body + scrambled red active site cluster
+      const spikes = 9;
+      const baseR = p.radius;
+      const t = performance.now()/400;
+      ctx.beginPath();
+      for(let i=0;i<spikes;i++){
+        const ang = (i/spikes)*Math.PI*2;
+        const jitter = (Math.sin(t + i*1.7 + p.shapeSeed)*0.4 + 0.6); // 0.2..1.0
+        const r = baseR * (0.6 + jitter*0.6 * (0.3 + 0.7*p.denatureFactor));
+        const x = Math.cos(ang)*r;
+        const y = Math.sin(ang)*r;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#2563eb';
+      ctx.fill();
+      // Outline to emphasize distortion
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Scrambled active site: multiple small rotating red blobs
+      const blobCount = 4;
+      for(let i=0;i<blobCount;i++){
+        const ang = (i/blobCount)*Math.PI*2 + t*0.8;
+        const rad = baseR*0.35 + 4*Math.sin(t*1.3 + i);
+        const bx = Math.cos(ang)*rad*0.7;
+        const by = Math.sin(ang)*rad*0.7;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(220,38,38,${0.6 + 0.4*Math.sin(t + i)})`;
+        ctx.ellipse(bx,by,6,4,ang,0,Math.PI*2);
+        ctx.fill();
+      }
+    }
     ctx.restore();
   }
 

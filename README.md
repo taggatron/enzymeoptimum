@@ -6,6 +6,7 @@ A lightweight in-browser visualization of enzyme activity vs temperature. Demons
 - Decline in activity due to denaturation above the optimum
 - Visual distortion of enzyme active sites as temperature exceeds 37°C
 - Probabilistic denaturation: enzymes remain pristine until temperature first exceeds 37°C; higher temperatures progressively denature more enzymes
+- Dramatic denatured morphology (irregular spikes + red fragmented active site)
 - Real-time reaction rate measurement compared to a theoretical curve
 
 ## Features
@@ -29,7 +30,7 @@ python3 -m http.server 8000
 ## Model Simplifications
 
 - Reaction probability scales with: speed factor × temperature efficiency × remaining active-site integrity
-- Speed uses a Q10-like rule (doubling ~ every 10°C until 37°C) and exponential penalty afterwards
+- Speed uses a Q10-like rule (doubling ~ every 10°C) across full range (no post‑optimum slowdown) to illustrate collision theory distinctly from denaturation loss of function
 - Denaturation: once temperature > 37°C, each whole-degree rise performs a probability trial for each still-native enzyme; denature severity then ramps gradually with further temperature increase
 - Substrate is recycled after reaction to keep counts stable
 
