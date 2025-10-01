@@ -16,6 +16,10 @@ class Particle {
     this.shapeSeed=Math.random()*Math.PI*2;
     this.denatureFactor=0; // 0 normal, up to 1 fully distorted
     this.denatured=false; // flag for probabilistic denaturation
+    if(type==='substrate'){
+      this.orientation = Math.random()*Math.PI*2; // current facing
+      this.targetOrientation = this.orientation; // desired facing
+    }
   }
 }
 
@@ -98,6 +102,29 @@ export class Simulation {
           p.denatureFactor += (target - p.denatureFactor)*0.02;
         }
       } else p.denatureFactor=0;
+
+      // Substrate orientation update toward nearest native enzyme
+      if(p.type==='substrate'){
+        // Find nearest non-denatured enzyme within a sensing radius
+        let nearest=null; let nearestDist=Infinity;
+        for(const e of this.particles){
+          if(e.type!=='enzyme') continue;
+          if(e.denatured) continue; // ignore denatured active sites
+          const dx = e.x - p.x; const dy = e.y - p.y; const d = Math.hypot(dx,dy);
+          if(d < nearestDist && d < 260){ // sensing radius
+            nearestDist=d; nearest = e; }
+        }
+        if(nearest){
+          const dx = nearest.x - p.x; const dy = nearest.y - p.y;
+          p.targetOrientation = Math.atan2(dy,dx);
+        } else {
+          // slow drift if no target
+          p.targetOrientation += rand(-0.05,0.05);
+        }
+        // Smoothly rotate toward target (shortest angular distance)
+        const angDiff = ((p.targetOrientation - p.orientation + Math.PI) % (Math.PI*2)) - Math.PI;
+        p.orientation += angDiff * 0.08 * speedFactor; // speedFactor for quicker alignment at higher temp
+      }
     }
 
     // Collision detection enzyme-substrate
@@ -212,9 +239,9 @@ export class Simulation {
 
   drawSubstrate(p){
     const ctx=this.ctx; ctx.save(); ctx.translate(p.x,p.y);
-    // Pie slice substrate: wedge matching typical native notch (~1.8 rad spread)
+    // Pie slice substrate oriented toward nearest enzyme active site
     const angle = 1.8; // spread angle
-    const rot = p.shapeSeed + performance.now()/3000; // slow rotation for variety
+    const rot = p.orientation || 0;
     ctx.rotate(rot);
     ctx.beginPath();
     ctx.fillStyle = '#fbbf24';
