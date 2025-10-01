@@ -13,10 +13,13 @@ export class ReactionGraph {
   }
 
   theoreticalRate(t){
-    // Combine Q10 up to optimum then denaturation decline
-    const base = Math.pow(2, (Math.min(t,37)-25)/10);
-    const penalty = t>37 ? Math.exp(-(t-37)/15) : 1;
-    return base*penalty;
+    // Rapid falloff after optimum: Q10 rise to 37, then steep exponential decay (strong denaturation impact)
+    const base = Math.pow(2, (Math.min(t,37)-25)/10); // growth to optimum
+    if(t <= 37) return base;
+    const excess = t - 37;
+    // Steeper decay factor: half-life roughly every 3°C beyond optimum
+    const decay = Math.pow(0.5, excess/3); // 37+3 => 50%, 37+6 => 25%, etc.
+    return base * decay;
   }
 
   update(){ this.draw(); }
@@ -24,6 +27,11 @@ export class ReactionGraph {
   draw(){
     const ctx=this.ctx; const w=this.canvas.width; const h=this.canvas.height;
     ctx.clearRect(0,0,w,h);
+    // Recompute samples (in case formula or dynamic params change later)
+    this.samples.length = 0;
+    for(let t=0;t<=80;t+=2){
+      this.samples.push({t, theoretical:this.theoreticalRate(t)});
+    }
     // Axes
     ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(40,10); ctx.lineTo(40,h-30); ctx.lineTo(w-10,h-30); ctx.stroke();

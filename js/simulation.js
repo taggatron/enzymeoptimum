@@ -106,6 +106,7 @@ export class Simulation {
 
     for(const e of enzymes){
       if(e.cooldown>0) continue;
+      if(e.denatured) continue; // denatured enzymes no longer catalyze reactions
       for(const s of substrates){
         if(s.cooldown>0) continue;
         const dx = e.x - s.x;

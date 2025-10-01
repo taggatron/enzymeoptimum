@@ -32,6 +32,8 @@ python3 -m http.server 8000
 - Reaction probability scales with: speed factor × temperature efficiency × remaining active-site integrity
 - Speed uses a Q10-like rule (doubling ~ every 10°C) across full range (no post‑optimum slowdown) to illustrate collision theory distinctly from denaturation loss of function
 - Denaturation: once temperature > 37°C, each whole-degree rise performs a probability trial for each still-native enzyme; denature severity then ramps gradually with further temperature increase
+- Denatured enzymes have zero catalytic activity (they no longer contribute to product formation)
+ - Theoretical curve shows a deliberately steep decline after 37°C (half-life ~3°C) to visually emphasize rapid loss of functional enzymes despite continued molecular motion
 - Substrate is recycled after reaction to keep counts stable
 
 ## Extending
