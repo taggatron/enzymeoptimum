@@ -5,6 +5,7 @@ const tempSlider = document.getElementById('tempSlider');
 const tempValue = document.getElementById('tempValue');
 const rateDisplay = document.getElementById('rateDisplay');
 const totalProductsEl = document.getElementById('totalProducts');
+const tempNote = document.getElementById('tempNote');
 
 const simCanvas = document.getElementById('simCanvas');
 const graphCanvas = document.getElementById('graphCanvas');
@@ -63,6 +64,14 @@ resizeCanvases();
 function updateTemp(val){
   simulation.setTemperature(parseInt(val,10));
   tempValue.textContent = val;
+  const t = simulation.temperature;
+  if(t < 37){
+    tempNote.textContent = 'As the temperature increases the substrates and enzymes collide more often (collision theory) leading to an increase in the rate of reaction.';
+  } else if (Math.round(t) === 37){
+    tempNote.textContent = 'The temperature is now at the optimum. This means there are the most collisions without any enzyme shape changes.';
+  } else {
+    tempNote.textContent = 'Temperature above 37°C causes denaturation (active site distortion).';
+  }
 }
 
 tempSlider.addEventListener('input', e => updateTemp(e.target.value));
