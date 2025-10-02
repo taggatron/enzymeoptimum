@@ -45,7 +45,6 @@ export class Simulation {
 
   resize(newWidth,newHeight){
     const prevW = this.width; const prevH = this.height;
-    this.canvas.width = newWidth; this.canvas.height = newHeight;
     this.width = newWidth; this.height = newHeight;
     const scaleX = newWidth/prevW; const scaleY = newHeight/prevH;
     const uniformScale = Math.min(scaleX, scaleY);

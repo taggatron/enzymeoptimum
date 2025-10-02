@@ -28,18 +28,26 @@ function resizeCanvases(){
   graphCanvas.style.width = '100%';
   graphCanvas.style.height = graphHeight + 'px';
 
-  // Set internal pixel sizes
-  const simW = Math.floor(simCanvas.clientWidth * dpr);
-  const simH = Math.floor(simHeight * dpr);
-  simulation.resize(simW, simH);
-  simCanvas.width = simW; simCanvas.height = simH;
-  graphCanvas.width = Math.floor(graphCanvas.clientWidth * dpr);
-  graphCanvas.height = Math.floor(graphHeight * dpr);
+  // Logical (CSS) dimensions
+  const logicalSimW = simCanvas.clientWidth;
+  const logicalSimH = simHeight;
+  const logicalGraphW = graphCanvas.clientWidth;
+  const logicalGraphH = graphHeight;
+
+  // Backing store size (HiDPI)
+  simCanvas.width = Math.floor(logicalSimW * dpr);
+  simCanvas.height = Math.floor(logicalSimH * dpr);
+  graphCanvas.width = Math.floor(logicalGraphW * dpr);
+  graphCanvas.height = Math.floor(logicalGraphH * dpr);
+
+  // Inform simulation using logical pixels so boundary math matches displayed size
+  simulation.resize(logicalSimW, logicalSimH);
 
   simulation.ctx.setTransform(dpr,0,0,dpr,0,0);
   const gctx = graphCanvas.getContext('2d');
   gctx.setTransform(dpr,0,0,dpr,0,0);
   graph.setScaleFactor(scale);
+  graph.setLogicalSize(logicalGraphW, logicalGraphH);
 }
 
 window.addEventListener('resize', resizeCanvases, {passive:true});

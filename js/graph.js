@@ -8,12 +8,15 @@ export class ReactionGraph {
     this.maxT=80; this.minT=0;
     this.samples=[]; // {t, theoretical}
     this.scaleFactor = 1; // UI scaling from outside
+    this.logicalWidth = canvas.width; // will be overridden by setLogicalSize
+    this.logicalHeight = canvas.height;
     for(let t=0;t<=80;t+=2){
       this.samples.push({t, theoretical:this.theoreticalRate(t)});
     }
   }
 
   setScaleFactor(s){ this.scaleFactor = s; }
+  setLogicalSize(w,h){ this.logicalWidth = w; this.logicalHeight = h; }
 
   theoreticalRate(t){
     // Rapid falloff after optimum: Q10 rise to 37, then steep exponential decay (strong denaturation impact)
@@ -28,7 +31,7 @@ export class ReactionGraph {
   update(){ this.draw(); }
 
   draw(){
-    const ctx=this.ctx; const w=this.canvas.width; const h=this.canvas.height;
+  const ctx=this.ctx; const w=this.logicalWidth; const h=this.logicalHeight;
     ctx.clearRect(0,0,w,h);
     // Recompute samples (in case formula or dynamic params change later)
     this.samples.length = 0;
