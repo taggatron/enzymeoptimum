@@ -181,6 +181,17 @@ export class Simulation {
 
   drawEnzyme(p){
     const ctx=this.ctx; const r=p.radius; ctx.save(); ctx.translate(p.x,p.y);
+    const OPT=37; const tol=1.8; // wider band for gradient falloff
+    if(!p.denatured){
+      const dist = Math.abs(this.temperature-OPT);
+      if(dist <= tol){
+        // Glow intensity fades linearly from center (dist=0) to edge (dist=tol)
+        const alpha = 1 - (dist / tol); // 1 at optimum -> 0 at edge
+        const blur = Math.max(6, r * (0.6 + 1.2*alpha));
+        ctx.shadowColor = `rgba(34,211,238,${0.55 + 0.35*alpha})`; // cyan glow
+        ctx.shadowBlur = blur;
+      }
+    }
     if(!p.denatured){
       ctx.beginPath();
       const wobble = 1 + 0.05*Math.sin(p.shapeSeed + performance.now()/900);

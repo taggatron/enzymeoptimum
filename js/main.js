@@ -6,6 +6,9 @@ const tempValue = document.getElementById('tempValue');
 const rateDisplay = document.getElementById('rateDisplay');
 const totalProductsEl = document.getElementById('totalProducts');
 const tempNote = document.getElementById('tempNote');
+const optimumBadge = document.getElementById('optimumBadge');
+
+let wasInOptimumBand = false;
 
 const simCanvas = document.getElementById('simCanvas');
 const graphCanvas = document.getElementById('graphCanvas');
@@ -72,6 +75,17 @@ function updateTemp(val){
   } else {
     tempNote.textContent = 'Temperature above 37°C causes denaturation (active site distortion).';
   }
+  // Badge logic based on entering the optimum band (±0.6°C around 37)
+  const inBand = Math.abs(simulation.temperature - 37) <= 0.6;
+  if(inBand && !wasInOptimumBand){
+    optimumBadge.hidden = false;
+    optimumBadge.classList.add('show');
+    // Auto-hide after 3 seconds but keep hidden property false so layout stable
+    setTimeout(()=>optimumBadge.classList.remove('show'), 3000);
+  } else if(!inBand && wasInOptimumBand){
+    optimumBadge.classList.remove('show');
+  }
+  wasInOptimumBand = inBand;
 }
 
 tempSlider.addEventListener('input', e => updateTemp(e.target.value));

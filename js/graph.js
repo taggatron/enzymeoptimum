@@ -59,11 +59,24 @@ export class ReactionGraph {
     }
     ctx.stroke();
 
-    // Current temperature vertical line
+    // Current temperature vertical line (with glow near optimum)
     const ct = this.temperatureGetter();
-    ctx.strokeStyle='#f87171';
-  const cx = this.xForTemp(ct,w,leftMargin,rightMargin);
-  ctx.beginPath(); ctx.moveTo(cx,h-bottomMargin); ctx.lineTo(cx,topMargin); ctx.stroke();
+    const cx = this.xForTemp(ct,w,leftMargin,rightMargin);
+    const opt=37, tol=1.8;
+    const dist = Math.abs(ct - opt);
+    if(dist <= tol){
+      const alpha = 1 - (dist / tol); // 1 at optimum, 0 at edge
+      ctx.save();
+      ctx.shadowColor=`rgba(34,211,238,${0.65 + 0.25*alpha})`;
+      ctx.shadowBlur = (14 + 10*alpha) * sf;
+      ctx.strokeStyle = `rgba(125,249,255,${0.7 + 0.3*alpha})`;
+      ctx.lineWidth = Math.max(2.2, 2.8*sf + 1.2*alpha);
+      ctx.beginPath(); ctx.moveTo(cx,h-bottomMargin); ctx.lineTo(cx,topMargin); ctx.stroke();
+      ctx.restore();
+    }
+    ctx.strokeStyle='#38bdf8';
+    ctx.lineWidth=Math.max(1.4,1.8*sf);
+    ctx.beginPath(); ctx.moveTo(cx,h-bottomMargin); ctx.lineTo(cx,topMargin); ctx.stroke();
 
     // Current measured rate point
     const rate = this.rateGetter();
