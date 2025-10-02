@@ -42,6 +42,16 @@ export class Simulation {
     }
   }
 
+  resize(newWidth,newHeight){
+    this.canvas.width = newWidth; this.canvas.height = newHeight;
+    this.width = newWidth; this.height = newHeight;
+    // Clamp particles inside new bounds
+    for(const p of this.particles){
+      if(p.x > this.width - p.radius) p.x = this.width - p.radius;
+      if(p.y > this.height - p.radius) p.y = this.height - p.radius;
+    }
+  }
+
   setTemperature(t){ this.temperature = t; }
 
   get currentRatePer10s(){
