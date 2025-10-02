@@ -21,7 +21,7 @@ function resizeCanvases(){
   // Scale factor relative to baseline, clamped for extreme sizes
   const scale = Math.min(1.4, Math.max(0.55, containerWidth / BASE_WIDTH));
   const simHeight = Math.round(420 * scale); // proportional height
-  const graphHeight = Math.round(260 * Math.max(0.55, scale));
+  const graphHeight = Math.round(340 * Math.max(0.6, scale*0.95));
 
   simCanvas.style.width = '100%';
   simCanvas.style.height = simHeight + 'px';
