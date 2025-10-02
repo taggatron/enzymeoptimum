@@ -10,6 +10,7 @@ function clamp(v,min,max){ return v<min?min:v>max?max:v; }
 class Particle {
   constructor(x,y,radius,type){
     this.x=x; this.y=y; this.radius=radius; this.type=type; // 'enzyme' | 'substrate'
+    this.baseRadius = radius;
     this.vx=rand(-1,1); this.vy=rand(-1,1);
     this.cooldown=0; // pause after reaction
     // shapeSeed influences active site distortion when denatured
@@ -43,10 +44,14 @@ export class Simulation {
   }
 
   resize(newWidth,newHeight){
+    const prevW = this.width; const prevH = this.height;
     this.canvas.width = newWidth; this.canvas.height = newHeight;
     this.width = newWidth; this.height = newHeight;
-    // Clamp particles inside new bounds
+    const scaleX = newWidth/prevW; const scaleY = newHeight/prevH;
+    const uniformScale = Math.min(scaleX, scaleY);
     for(const p of this.particles){
+      p.x *= scaleX; p.y *= scaleY;
+      p.radius = p.baseRadius * uniformScale; // scale radius uniformly
       if(p.x > this.width - p.radius) p.x = this.width - p.radius;
       if(p.y > this.height - p.radius) p.y = this.height - p.radius;
     }
@@ -105,41 +110,39 @@ export class Simulation {
         if(!p.denatured){
           p.denatureFactor = 0; // pristine until denature event
         } else {
-          // Increase toward 1 as temperature rises further; logistic with temp
-          const over = Math.max(0,this.temperature-37);
-          const target = 1 - 1/(1+Math.exp(-(over-8)/4));
-            // Smoothly lerp current toward target
-          p.denatureFactor += (target - p.denatureFactor)*0.02;
-        }
-      } else p.denatureFactor=0;
-
-      // Substrate orientation update toward nearest native enzyme
-      if(p.type==='substrate'){
-        // Find nearest non-denatured enzyme within a sensing radius
-        let nearest=null; let nearestDist=Infinity;
-        for(const e of this.particles){
-          if(e.type!=='enzyme') continue;
-          if(e.denatured) continue; // ignore denatured active sites
-          const dx = e.x - p.x; const dy = e.y - p.y; const d = Math.hypot(dx,dy);
-          if(d < nearestDist && d < 260){ // sensing radius
-            nearestDist=d; nearest = e; }
-        }
-        if(nearest){
-          const dx = nearest.x - p.x; const dy = nearest.y - p.y;
-          p.targetOrientation = Math.atan2(dy,dx);
-        } else {
-          // slow drift if no target
-          p.targetOrientation += rand(-0.05,0.05);
-        }
-        // Smoothly rotate toward target (shortest angular distance)
-        const angDiff = ((p.targetOrientation - p.orientation + Math.PI) % (Math.PI*2)) - Math.PI;
-        p.orientation += angDiff * 0.08 * speedFactor; // speedFactor for quicker alignment at higher temp
-      }
-    }
-
-    // Collision detection enzyme-substrate
-    const enzymes = this.particles.filter(p=>p.type==='enzyme');
-    const substrates = this.particles.filter(p=>p.type==='substrate');
+          if(p.denatured){
+            const spikes = 11;
+            const r = p.radius;
+            this.ctx.save();
+            this.ctx.translate(p.x,p.y);
+            this.ctx.rotate(p.angle);
+            this.ctx.beginPath();
+            for(let i=0;i<spikes;i++){
+              const theta = (i/spikes)*Math.PI*2;
+              const inner = r*0.4;
+              const outer = r*(0.9+0.3*Math.sin(i*1.7 + p.angle));
+              const rad = (i%2===0)?outer:inner;
+              const px = Math.cos(theta)*rad;
+              const py = Math.sin(theta)*rad;
+              if(i===0) this.ctx.moveTo(px,py); else this.ctx.lineTo(px,py);
+            }
+            this.ctx.closePath();
+            this.ctx.fillStyle = '#5c1a1a';
+            this.ctx.fill();
+            this.ctx.lineWidth = Math.max(1.5, r*0.09);
+            this.ctx.strokeStyle = '#ff4d4d';
+            this.ctx.stroke();
+            this.ctx.fillStyle='rgba(255,80,80,0.6)';
+            for(let i=0;i<4;i++){
+              const fx = Math.cos(p.angle + i)*r*0.9;
+              const fy = Math.sin(p.angle*1.3 + i)*r*0.9;
+              this.ctx.beginPath();
+              this.ctx.arc(fx,fy,r*0.15,0,Math.PI*2);
+              this.ctx.fill();
+            }
+            this.ctx.restore();
+            return;
+          }
 
     for(const e of enzymes){
       if(e.cooldown>0) continue;
@@ -191,7 +194,7 @@ export class Simulation {
   }
 
   drawEnzyme(p){
-    const ctx=this.ctx;
+    const r = p.radius;
     ctx.save();
     ctx.translate(p.x,p.y);
     if(!p.denatured){
@@ -203,7 +206,7 @@ export class Simulation {
       ctx.fill();
       const notchAngle = 0.9;
       const notchSize = 0.55;
-      ctx.beginPath();
+    this.ctx.lineWidth = Math.max(1, r*0.18);
       ctx.fillStyle = '#0f172a';
       ctx.rotate(p.shapeSeed * 0.2 + performance.now()/5000);
       ctx.moveTo(0,0);
@@ -211,7 +214,7 @@ export class Simulation {
       ctx.closePath();
       ctx.fill();
     } else {
-      // Denatured: irregular spiky polygon body + scrambled red active site cluster
+    this.ctx.lineWidth = Math.max(1, r*0.18);
       const spikes = 9;
       const baseR = p.radius;
       const t = performance.now()/400;
