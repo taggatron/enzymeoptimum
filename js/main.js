@@ -12,27 +12,44 @@ const graphCanvas = document.getElementById('graphCanvas');
 const simulation = new Simulation(simCanvas);
 const graph = new ReactionGraph(graphCanvas, () => simulation.temperature, () => simulation.currentRatePer10s);
 
+// Baseline logical width for scaling heuristics
+const BASE_WIDTH = 800;
+
 function resizeCanvases(){
   const dpr = window.devicePixelRatio || 1;
-  // Target logical widths based on container; full width minus padding
   const containerWidth = simCanvas.parentElement.clientWidth;
-  const simHeight = Math.max(300, Math.min(520, Math.round(containerWidth*0.6)));
-  const graphHeight = 240;
+  // Scale factor relative to baseline, clamped for extreme sizes
+  const scale = Math.min(1.4, Math.max(0.55, containerWidth / BASE_WIDTH));
+  const simHeight = Math.round(420 * scale); // proportional height
+  const graphHeight = Math.round(260 * Math.max(0.55, scale));
+
   simCanvas.style.width = '100%';
   simCanvas.style.height = simHeight + 'px';
   graphCanvas.style.width = '100%';
   graphCanvas.style.height = graphHeight + 'px';
-  simulation.resize(Math.floor(simCanvas.clientWidth * dpr), Math.floor(simHeight * dpr));
+
+  // Set internal pixel sizes
+  const simW = Math.floor(simCanvas.clientWidth * dpr);
+  const simH = Math.floor(simHeight * dpr);
+  simulation.resize(simW, simH);
+  simCanvas.width = simW; simCanvas.height = simH;
   graphCanvas.width = Math.floor(graphCanvas.clientWidth * dpr);
   graphCanvas.height = Math.floor(graphHeight * dpr);
-  // Scale contexts for HiDPI sharpness
+
   simulation.ctx.setTransform(dpr,0,0,dpr,0,0);
   const gctx = graphCanvas.getContext('2d');
   gctx.setTransform(dpr,0,0,dpr,0,0);
+  graph.setScaleFactor(scale);
 }
 
 window.addEventListener('resize', resizeCanvases, {passive:true});
 window.addEventListener('orientationchange', ()=>{ setTimeout(resizeCanvases, 150); }, {passive:true});
+
+// Use ResizeObserver for container-based changes (e.g., CSS layout shifts)
+if('ResizeObserver' in window){
+  const ro = new ResizeObserver(()=> resizeCanvases());
+  ro.observe(simCanvas.parentElement);
+}
 resizeCanvases();
 
 function updateTemp(val){

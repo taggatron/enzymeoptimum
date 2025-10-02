@@ -51,7 +51,9 @@ export class Simulation {
     const uniformScale = Math.min(scaleX, scaleY);
     for(const p of this.particles){
       p.x *= scaleX; p.y *= scaleY;
-      p.radius = p.baseRadius * uniformScale; // scale radius uniformly
+      const scaled = p.baseRadius * uniformScale;
+      // Clamp for readability extremes
+      p.radius = clamp(scaled, p.type==='enzyme'?10:5, p.type==='enzyme'?40:20);
       if(p.x > this.width - p.radius) p.x = this.width - p.radius;
       if(p.y > this.height - p.radius) p.y = this.height - p.radius;
     }

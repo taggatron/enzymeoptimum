@@ -7,10 +7,13 @@ export class ReactionGraph {
     this.rateGetter=rateGetter;
     this.maxT=80; this.minT=0;
     this.samples=[]; // {t, theoretical}
+    this.scaleFactor = 1; // UI scaling from outside
     for(let t=0;t<=80;t+=2){
       this.samples.push({t, theoretical:this.theoreticalRate(t)});
     }
   }
+
+  setScaleFactor(s){ this.scaleFactor = s; }
 
   theoreticalRate(t){
     // Rapid falloff after optimum: Q10 rise to 37, then steep exponential decay (strong denaturation impact)
@@ -32,18 +35,23 @@ export class ReactionGraph {
     for(let t=0;t<=80;t+=2){
       this.samples.push({t, theoretical:this.theoreticalRate(t)});
     }
-    // Axes
-    ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(40,10); ctx.lineTo(40,h-30); ctx.lineTo(w-10,h-30); ctx.stroke();
+  const sf = this.scaleFactor;
+  const leftMargin = 40 * sf;
+  const topMargin = 10 * sf;
+  const bottomMargin = 30 * sf;
+  const rightMargin = 10 * sf;
+  // Axes
+  ctx.strokeStyle='#94a3b8'; ctx.lineWidth=Math.max(1,1.2*sf);
+  ctx.beginPath(); ctx.moveTo(leftMargin,topMargin); ctx.lineTo(leftMargin,h-bottomMargin); ctx.lineTo(w-rightMargin,h-bottomMargin); ctx.stroke();
 
     const maxRate = Math.max(...this.samples.map(s=>s.theoretical))*1.1;
 
     // Plot theoretical curve
-    ctx.strokeStyle='#4ade80'; ctx.lineWidth=2; ctx.beginPath();
+    ctx.strokeStyle='#4ade80'; ctx.lineWidth=Math.max(1.5,2*sf); ctx.beginPath();
     for(let i=0;i<this.samples.length;i++){
       const s=this.samples[i];
-      const x = this.xForTemp(s.t,w);
-      const y = this.yForRate(s.theoretical,maxRate,h);
+      const x = this.xForTemp(s.t,w,leftMargin,rightMargin);
+      const y = this.yForRate(s.theoretical,maxRate,h,topMargin,bottomMargin);
       if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     }
     ctx.stroke();
@@ -51,25 +59,29 @@ export class ReactionGraph {
     // Current temperature vertical line
     const ct = this.temperatureGetter();
     ctx.strokeStyle='#f87171';
-    const cx = this.xForTemp(ct,w);
-    ctx.beginPath(); ctx.moveTo(cx,h-30); ctx.lineTo(cx,10); ctx.stroke();
+  const cx = this.xForTemp(ct,w,leftMargin,rightMargin);
+  ctx.beginPath(); ctx.moveTo(cx,h-bottomMargin); ctx.lineTo(cx,topMargin); ctx.stroke();
 
     // Current measured rate point
     const rate = this.rateGetter();
-    const ry = this.yForRate(rate,maxRate,h);
+  const ry = this.yForRate(rate,maxRate,h,topMargin,bottomMargin);
     ctx.fillStyle='#f87171';
-    ctx.beginPath(); ctx.arc(cx,ry,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,ry,5*sf,0,Math.PI*2); ctx.fill();
 
     // Labels
-    ctx.fillStyle='#f1f5f9'; ctx.font='12px system-ui';
-    ctx.fillText('0',35,h-30+12);
-    ctx.fillText('Temp (°C)', w/2-30, h-5);
+    ctx.fillStyle='#f1f5f9'; ctx.font=`${Math.round(12*sf)}px system-ui`;
+    ctx.fillText('0', leftMargin-5*sf, h-bottomMargin + 12*sf);
+    ctx.fillText('Temp (°C)', w/2 - 30*sf, h-5*sf);
     ctx.save();
-    ctx.translate(12,h/2); ctx.rotate(-Math.PI/2); ctx.fillText('Rate (relative)',0,0); ctx.restore();
-    ctx.fillText(ct.toFixed(0)+'°C', cx+4, 18);
-    ctx.fillText(rate.toFixed(2)+' r/s', cx+6, ry-8);
+    ctx.translate(12*sf, h/2); ctx.rotate(-Math.PI/2); ctx.fillText('Rate (relative)',0,0); ctx.restore();
+    ctx.fillText(ct.toFixed(0)+'°C', cx+4*sf, topMargin + 8*sf);
+    ctx.fillText(rate.toFixed(2)+' r/s', cx+6*sf, ry-8*sf);
   }
 
-  xForTemp(t,w){ return 40 + (t/ (this.maxT-this.minT)) * (w-50); }
-  yForRate(r,maxRate,h){ return (h-30) - (r/maxRate)*(h-40); }
+  xForTemp(t,w,leftMargin,rightMargin){
+    return leftMargin + (t/(this.maxT-this.minT)) * (w - leftMargin - rightMargin);
+  }
+  yForRate(r,maxRate,h,topMargin,bottomMargin){
+    return (h-bottomMargin) - (r/maxRate)*(h - bottomMargin - topMargin);
+  }
 }
